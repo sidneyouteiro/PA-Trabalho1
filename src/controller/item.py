@@ -3,23 +3,26 @@ from sqlalchemy.orm import Session
 
 from src.database.db import get_db
 from src.database.models import ItemInventario
-from src.database.schemas import ListItemResponse, ItemSchema, UpdateItemSchema, ItemResponse
+from src.database.schemas import ListItemResponse, ItemSchema, UpdateItemSchema, ItemResponse, CreateItemSchema
+from src.utilities.db_utilities import DatabaseDecoder,DatabaseEncoder
 
 router = APIRouter()
 
 @router.get('/', response_model = ListItemResponse)
 def get_all_itens(page: int = 1, limit: int = 15, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
-    itens = db.query(models.ItemInventario).limit(limit).offset(skip).all()
-    return { 'itens': itens }
+    itens = db.query(ItemInventario).limit(limit).offset(skip).all()
+    return Response({ 'itens': itens },status_code=status.HTTP_200_OK)
 
 @router.post('/', response_model = ItemResponse)
 def create_item(new_item: CreateItemSchema,db: Session = Depends(get_db)):
-    db_item = models.ItemInventario(**newItem.dict())
+    encoded_item = DatabaseEncoder(**new_item.dict()).encode()
+    db_item = ItemInventario(**encoded_item)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    return Response(content=db_item,status_code=status.HTTP_201_CREATED)
+    decoded_item = DatabaseDecoder(**db_item.dict()).decode()
+    return Response(content=decoded_item,status_code=status.HTTP_201_CREATED)
 
 @router.put('/{item_id}', response_model = ItemResponse)
 def update_item(item_id: int, updates: UpdateItemSchema, db: Session = Depends(get_db)):
@@ -30,7 +33,7 @@ def update_item(item_id: int, updates: UpdateItemSchema, db: Session = Depends(g
                             detail=f'Não foi encontrado item com o id {item_id}')
     item_query.update(updates.dict(exclude_unset=True), synchronize_session=False)
     db.commit()
-    return updated_item
+    return Response(updated_item,status_code=status.HTTP_200_OK)
 
 @router.delete('/{item_id}')
 def delete_item(item_id: int, db: Session = Depends(get_db)):

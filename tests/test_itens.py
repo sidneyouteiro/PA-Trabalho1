@@ -8,6 +8,11 @@ client = TestClient(app)
 test_url = '/item/'
 
 def test_create_item():
+    db = next(get_db())
+    last_item = db.query(ItemInventario).order_by(ItemInventario.item_id.desc()).first()
+    global new_item_id
+    new_item_id = 1 if not last_item else last_item.item_id + 1
+
     response = client.post(
         test_url,
         json={ 
@@ -21,16 +26,61 @@ def test_create_item():
             'quantidade_total': 1
         })
     assert response.status_code == 201
-    assert response.json() == {}
+    assert response.json() == { 
+        'item_id': new_item_id,
+        'item_nome': 'DesktopTeste',
+        'categoria': 'desktop',
+        'detalhes': {
+            'processador': 'Intel i9-9800',
+            'RAM': '32Gb',
+            'HD': '1Tb'
+        },
+        'quantidade_total': 1}
 
 def test_get_all_itens():
-    #response = client.get(test_url)
-    assert True == True
+    response = client.get(test_url)
+
+    assert response.status_code == 200
+    assert response.json() == [{ 
+        'item_id': new_item_id,
+        'item_nome': 'DesktopTeste',
+        'categoria': 'desktop',
+        'detalhes': {
+            'processador': 'Intel i9-9800',
+            'RAM': '32Gb',
+            'HD': '1Tb'
+        },
+        'quantidade_total': 1}]
 
 def test_update_item():
-    #response = client.put(test_url)
-    assert True == True
+    db = next(get_db())
+    response = client.put(
+        test_url+str(new_item_id),
+        json={
+            'detalhes': {
+                'processador': 'Intel i9-9800',
+                'RAM': '16Gb',
+                'HD': '1Tb'
+            }
+        }
+    )
+    updated_item = db.query(ItemInventario).filter(ItemInventario.item_id == new_item_id).first()
+    assert response.status_code == 200
+    assert updated_item.json() == {
+        'item_id': new_item_id,
+        'item_nome': 'DesktopTeste',
+        'categoria': 'desktop',
+        'detalhes': {
+            'processador': 'Intel i9-9800',
+            'RAM': '16Gb',
+            'HD': '1Tb'
+        },
+        'quantidade_total': 1
+    }
 
 def test_delete_item():
-    #response = client.delete(test_url)
-    assert True == True
+    db = next(get_db())
+    response = client.delete(test_url+str(new_item_id))
+    deleted_item = db.query(ItemInventario).filter(ItemInventario.item_id == new_item_id).first()
+    assert response.status_code == 204
+    assert not deleted_item

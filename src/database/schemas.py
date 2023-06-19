@@ -21,7 +21,7 @@ class UsuarioResponse(UsuarioSchema):
 
 class ItemSchema(BaseModel):
     item_nome: str
-    categoria: CategoriaEnum
+    categoria: str
     quantidade_total: int
 
 class CreateItemSchema(ItemSchema):
@@ -29,7 +29,6 @@ class CreateItemSchema(ItemSchema):
 
 class UpdateItemSchema(BaseModel):
     item_nome: str | None = None
-    categoria: str | None = None
     detalhes: dict | None = None
     quantidade_total: int | None = None
 
