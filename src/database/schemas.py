@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from enum import Enum
 from typing import List
 
@@ -10,7 +10,7 @@ class CategoriaEnum(str, Enum):
 
 class UsuarioSchema(BaseModel):
     usuario_nome: str
-    usuario_email: EmailStr
+    usuario_email: str
 
     class Config:
         orm_mode = True
@@ -36,14 +36,15 @@ class DeleteItemSchema(BaseModel):
     item_id: int
 
 class ItemResponse(ItemSchema):
-    detalhes: str
+    detalhes: dict
+    item_id: int
     
     class Config:
         orm_mode = True
 
 
 class ListItemResponse(BaseModel):
-    itens: List[ItemSchema]
+    itens: List[ItemResponse]
 
 class EmprestimoSchema(BaseModel):
     emprestimo_data: str

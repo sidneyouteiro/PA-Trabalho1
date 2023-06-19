@@ -10,6 +10,15 @@ class ItemInventario(Base):
     categoria = Column(String)
     detalhes = Column(String)
     quantidade_total = Column(Integer)
+
+    def dict(self):
+        return {
+            'item_id': self.item_id,
+            'item_nome': self.item_nome,
+            'categoria': self.categoria,
+            'detalhes': self.detalhes,
+            'quantidade_total': self.quantidade_total 
+        }
     
 class Usuario(Base):
     __tablename__ = 'usuario'
