@@ -1,31 +1,63 @@
-import re
-from schema import Schema, And, Use, Optional, SchemaError
+from pydantic import BaseModel, EmailStr
+from enum import Enum
+from typing import List
+
+class CategoriaEnum(str, Enum):
+    desktop = 'desktop'
+    notebook = 'notebook'
+    embarcado = 'embarcado'
+    sensor = 'sensor'
+
+class UsuarioSchema(BaseModel):
+    usuario_nome: str
+    usuario_email: EmailStr
+
+    class Config:
+        orm_mode = True
+
+class UsuarioResponse(UsuarioSchema):
+    usuario_id: int
 
 
-def isEmailValid(email):
-    regex = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
-    return bool(re.fullmatch(regex, email))
+class ItemSchema(BaseModel):
+    item_nome: str
+    categoria: CategoriaEnum
+    quantidade_total: int
 
-def isDateValid(date):
-    regex = r'(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[1,2])/(19|20)\d{2}'
-    return bool(re.fullmatch(regex, date))
+class CreateItemSchema(ItemSchema):
+    detalhes: dict
 
-UsuarioSchema = Schema({
-    'nome': And(str,len),
-    'email': And(Use(str.lower), lambda x: isEmailValid(x))
-})
+class UpdateItemSchema(BaseModel):
+    item_nome: str | None = None
+    categoria: str | None = None
+    detalhes: dict | None = None
+    quantidade_total: int | None = None
 
-ItemSchema = Schema({
-    'item_nome': And(str,len),
-    'categoria': And(str,Use(str.lower), lambda x: x in ('desktop','notebook','embarcado','sensor')),
-    'detalhes': And(str,len),
-    'quantidade_total': And(Use(int),lambda x: x > 0 )
-})
+class DeleteItemSchema(BaseModel):
+    item_id: int
 
-EmprestimoSchema = Schema({
-    'emprestimo_data': And(str, lambda x: isDateValid(x)),
-    'emprestimo_status': And(str, Use(str.lower), lambda x: x in ('emprestado','devolvido')),
-    'emprestimo_quantidade': And(Use(int), lambda x: x > 0 ),
-    'emprestimo_usuario_id': And(Use(int), lambda x: x > 0 ),
-    'emprestimo_item_id': And(Use(int), lambda x: x > 0 ),
-})
+class ItemResponse(ItemSchema):
+    detalhes: str
+    
+    class Config:
+        orm_mode = True
+
+
+class ListItemResponse(BaseModel):
+    itens: List[ItemSchema]
+
+class EmprestimoSchema(BaseModel):
+    emprestimo_data: str
+    emprestimo_status: str
+    emprestimo_quantidade: int
+    emprestimo_usuario_id: int
+    emprestimo_item_id: int
+
+    class Config:
+        orm_mode = True
+
+class UpdateEmprestimoSchema(BaseModel):
+    emprestimo_status: str
+
+class ListEmprestimoResponse(BaseModel):
+    emprestimos: List[EmprestimoSchema]
