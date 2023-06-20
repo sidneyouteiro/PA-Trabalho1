@@ -7,11 +7,17 @@ from src.database.schemas import UpdateEmprestimoSchema, EmprestimoSchema, ListE
 
 router = APIRouter()
 
-@router.get('/', response_model=ListEmprestimoResponse, status_code=status.HTTP_200_OK)
+@router.get('/', status_code=status.HTTP_200_OK)
 def get_all_emprestimos(page: int = 1, limit: int = 15, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     emprestimos = db.query(Emprestimo).limit(limit).offset(skip).all()
-    return { 'emprestimos': emprestimos }
+
+    emprestimos_response = []
+    for emprestimo in emprestimos:
+        emprestimos_response.append(emprestimo.get_dict())
+
+    print(emprestimos_response)
+    return { 'emprestimos': emprestimos_response }
 
 @router.post('/',status_code=status.HTTP_201_CREATED)
 def create_emprestimo(new_emprestimo: EmprestimoSchema, db: Session = Depends(get_db)):

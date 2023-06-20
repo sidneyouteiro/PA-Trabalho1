@@ -3,6 +3,7 @@ from main import app
 
 from src.database.db import get_db
 from src.database.models import ItemInventario
+from src.utilities.db_utilities import DatabaseDecoder
 
 client = TestClient(app)
 test_url = '/item/'
@@ -38,19 +39,12 @@ def test_create_item():
         'quantidade_total': 1}
 
 def test_get_all_itens():
+    db = next(get_db())
     response = client.get(test_url)
 
+    item_db = [DatabaseDecoder(**i.get_dict()).decode() for i in db.query(ItemInventario).limit(15).all()]
     assert response.status_code == 200
-    assert response.json() == {'itens':[{ 
-        'item_id': new_item_id,
-        'item_nome': 'DesktopTeste',
-        'categoria': 'desktop',
-        'detalhes': {
-            'processador': 'Intel i9-9800',
-            'RAM': '32Gb',
-            'HD': '1Tb'
-        },
-        'quantidade_total': 1}]}
+    assert response.json() == { 'itens': item_db }
 
 def test_update_item():
     db = next(get_db())

@@ -63,4 +63,4 @@ class UpdateEmprestimoSchema(BaseModel):
     emprestimo_status: str
 
 class ListEmprestimoResponse(BaseModel):
-    emprestimos: List[EmprestimoSchema]
+    emprestimos: List[EmprestimoResponse]

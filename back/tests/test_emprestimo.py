@@ -25,25 +25,16 @@ test_item_encoded = DatabaseEncoder(**{
 }).encode()
 test_item = ItemInventario(**test_item_encoded) 
 
-def create_entities():
-    db = next(get_db())
-    db.add(test_item)
-    db.add(test_user)
-    db.commit()
-    db.refresh(test_item)
-    db.refresh(test_user)
 
-    return test_user, test_item
+db = next(get_db())
+db.add(test_item)
+db.add(test_user)
+db.commit()
+db.refresh(test_item)
+db.refresh(test_user)
 
-def delete_entities(test_user,test_item):
-    db = next(get_db())
-    db.query(Usuario).filter(Usuario.usuario_id == test_user.usuario_id).delete(synchronize_session=False)
-    db.query(ItemInventario).filter(ItemInventario.item_id == test_item.item_id).delete(synchronize_session=False)
 
 def test_create_emprestimo():
-    test_user, test_item = create_entities()
-
-    db = next(get_db())
     last_emprestimo = db.query(Emprestimo).order_by(Emprestimo.emprestimo_id.desc()).first()
     global new_emprestimo_id
     new_emprestimo_id = 1 if not last_emprestimo else last_emprestimo.emprestimo_id + 1
@@ -57,7 +48,6 @@ def test_create_emprestimo():
             'emprestimo_usuario_id': test_user.usuario_id,
             'emprestimo_item_id': test_item.item_id,
         })
-    delete_entities(test_user, test_item)
     assert response.status_code == 201
     assert response.json() == {
         'emprestimo_id': new_emprestimo_id,
@@ -69,25 +59,14 @@ def test_create_emprestimo():
     }
 
 def test_get_all_emprestimos():
-    test_user, test_item = create_entities()
     response = client.get(test_url)
-
-    delete_entities(test_user,test_item)
+    emprestimos_bd = [i.get_dict() for i in db.query(Emprestimo).limit(15).all()]
+    
     assert response.status_code == 200
-    assert response.json() == {'emprestimos':[
-        {
-            'emprestimo_id': new_emprestimo_id,
-            'emprestimo_data': '19-07-2023',
-            'emprestimo_status': 'Emprestado', 
-            'emprestimo_quantidade': 1,
-            'emprestimo_usuario_id': test_user.usuario_id,
-            'emprestimo_item_id': test_item.item_id,
-        }
-    ]}
+    assert response.json() == { 'emprestimos': emprestimos_bd }
 
 def test_update_emprestimo():
     assert True == True
-    # db = next(get_db())
     # response = client.put(
     #     test_url+str(new_item_id),
     #     json={}
@@ -108,7 +87,6 @@ def test_update_emprestimo():
 
 def test_delete_emprestimo():
     assert True == True
-    # db = next(get_db())
     # response = client.delete(test_url+str(new_item_id))
     # deleted_item = db.query(ItemInventario).filter(ItemInventario.item_id == new_item_id).first()
     # assert response.status_code == 204
