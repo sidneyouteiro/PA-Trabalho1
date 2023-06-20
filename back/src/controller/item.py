@@ -15,7 +15,7 @@ def get_all_itens(page: int = 1, limit: int = 15, db: Session = Depends(get_db))
     
     response = []
     for item in itens:
-        response.append(DatabaseDecoder(**item.dict()).decode())
+        response.append(DatabaseDecoder(**item.get_dict()).decode())
 
     print(response[0],type(response[0]))
     return { 'itens': response }
@@ -27,14 +27,7 @@ def create_item(new_item: CreateItemSchema,db: Session = Depends(get_db)):
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    aux = {
-        'categoria':db_item.categoria,
-        'detalhes':db_item.detalhes,
-        'item_id':db_item.item_id,
-        'quantidade_total':db_item.quantidade_total,
-        'item_nome':db_item.item_nome
-    }
-    decoded_item = DatabaseDecoder(**aux).decode()
+    decoded_item = DatabaseDecoder(**db_item.get_dict()).decode()
     return decoded_item
 
 @router.put('/{item_id}', status_code=status.HTTP_200_OK)
@@ -48,7 +41,7 @@ def update_item(item_id: int, updates: UpdateItemSchema, db: Session = Depends(g
     encoded_update = DatabaseEncoder(**updates.dict(exclude_unset=True)).encode()
     item_query.update(encoded_update, synchronize_session=False)
     db.commit()
-    decoded_update = DatabaseDecoder(**updated_item.dict()).decode()
+    decoded_update = DatabaseDecoder(**updated_item.get_dict()).decode()
     return decoded_update
 
 @router.delete('/{item_id}')

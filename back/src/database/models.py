@@ -11,7 +11,7 @@ class ItemInventario(Base):
     detalhes = Column(String)
     quantidade_total = Column(Integer)
 
-    def dict(self):
+    def get_dict(self):
         return {
             'item_id': self.item_id,
             'item_nome': self.item_nome,
@@ -26,6 +26,12 @@ class Usuario(Base):
     usuario_nome = Column(String)
     usuario_email = Column(String)
 
+    def get_dict(self):
+        return {
+            'usuario_nome': self.usuario_nome,
+            'usuario_email': self.usuario_email
+        }
+
 class Emprestimo(Base):
     __tablename__ = 'emprestimos'
     emprestimo_id = Column(Integer, primary_key=True)
@@ -37,3 +43,13 @@ class Emprestimo(Base):
 
     dono_temporario = relationship('Usuario', backref="emprest_usuario", foreign_keys=[emprestimo_usuario_id])
     item_emprestado = relationship('ItemInventario', backref='emprest_item', foreign_keys=[emprestimo_item_id])
+
+    def get_dict(self):
+        return {
+            'emprestimo_id': self.emprestimo_id,
+            'emprestimo_data': self.emprestimo_data,
+            'emprestimo_status': self.emprestimo_status,
+            'emprestimo_quantidade': self.emprestimo_quantidade,
+            'emprestimo_usuario_id': self.emprestimo_usuario_id,
+            'emprestimo_item_id': self.emprestimo_item_id
+        }

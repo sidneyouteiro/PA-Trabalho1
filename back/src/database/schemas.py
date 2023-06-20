@@ -56,6 +56,9 @@ class EmprestimoSchema(BaseModel):
     class Config:
         orm_mode = True
 
+class EmprestimoResponse(EmprestimoSchema):
+    emprestimo_item_id: int
+
 class UpdateEmprestimoSchema(BaseModel):
     emprestimo_status: str
 

@@ -1,25 +1,34 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
 from src.database.models import Emprestimo
-from src.database.schemas import UpdateEmprestimoSchema, EmprestimoSchema, ListEmprestimoResponse
+from src.database.schemas import UpdateEmprestimoSchema, EmprestimoSchema, ListEmprestimoResponse, EmprestimoResponse
 
 router = APIRouter()
 
-@router.get('/', response_model=ListEmprestimoResponse)
+@router.get('/', response_model=ListEmprestimoResponse, status_code=status.HTTP_200_OK)
 def get_all_emprestimos(page: int = 1, limit: int = 15, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     emprestimos = db.query(Emprestimo).limit(limit).offset(skip).all()
     return { 'emprestimos': emprestimos }
 
-@router.post('/', response_model= EmprestimoSchema)
+@router.post('/',status_code=status.HTTP_201_CREATED)
 def create_emprestimo(new_emprestimo: EmprestimoSchema, db: Session = Depends(get_db)):
+    print(new_emprestimo.dict())
     db_emprestimo = Emprestimo(**new_emprestimo.dict())
     db.add(db_emprestimo)
     db.commit()
     db.refresh(db_emprestimo)
-    return db_emprestimo
+    aux = {
+        'emprestimo_id': db_emprestimo.emprestimo_id,
+        'emprestimo_data': db_emprestimo.emprestimo_data,
+        'emprestimo_status': db_emprestimo.emprestimo_status,
+        'emprestimo_quantidade': db_emprestimo.emprestimo_quantidade,
+        'emprestimo_usuario_id': db_emprestimo.emprestimo_usuario_id,
+        'emprestimo_item_id': db_emprestimo.emprestimo_item_id
+    }
+    return aux
 
 @router.put('/{emprestimo_id}')
 def update_emprestimo(emprestimo_id: int, updates: UpdateEmprestimoSchema, db: Session = Depends(get_db)):
