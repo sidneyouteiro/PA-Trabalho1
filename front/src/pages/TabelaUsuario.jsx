@@ -1,29 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Tabela from "../components/Tabela";
 import Navbar from '../components/Navbar';
 import { Modal } from 'react-bootstrap';
 
 const TabelaUsuario = () => {
+  const [linhas, setLinhas] = useState([])
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
+
+  const headers = ["ID", "Nome", "Email"]
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/usuario');
+      const json = await response.json();
+      setLinhas(json['usuarios'].map(obj => {
+        return Object.values(obj).map(value => {
+          if (typeof value !== 'object') {
+            return value;
+          }
+          return null;
+        });
+      }));
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Aqui você pode implementar a lógica para enviar os dados para o backend
-    // por meio de uma requisição HTTP, como por exemplo usando fetch() ou axios.
-    // Você pode usar os valores das variáveis nome e email para enviar os dados ao servidor.
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        "usuario_nome": nome,
+        "usuario_email": email
+      })
+    };
+    fetch('http://localhost:8000/usuario', requestOptions)
+      .then(response => response.json())
+      .then(() => {
+        handleClose()
+        fetchData()
+      });
   };
-  const headers = ["ID", "Nome", "Email"]
-  const linhas = [
-    [1, "Bubuxo", "bubuxo@bugre.com"],
-    [2, "Lobo", "lobo@canideo.com"],
-    [3, "Boto", "boto@rio.com"],
-  ];
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -44,31 +74,32 @@ const TabelaUsuario = () => {
           <Modal.Title>Novo Usuário</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-        <form onSubmit={handleSubmit}>
-        <label>
-          Nome:
-          <input className="input"
-            type="text"
-            value={nome}
-            onChange={(event) => setNome(event.target.value)}
-          />
-        </label>
-        <br />
-        <label>
-          Email:
-          <input className="input"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </label>
-        <br />
-        <button className="btn btn-primary"type="submit">Salvar</button>
-      </form>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>
+                Nome&nbsp;
+                <input className="input"
+                  type="text"
+                  value={nome}
+                  onChange={(event) => setNome(event.target.value)}
+                />
+              </label>
+            </div>
+            <br />
+            <div className="form-group">
+              <label>
+                Email&nbsp;
+                <input className="input"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
+            </div>
+            <br />
+            <button className="btn btn-primary" type="submit">Salvar</button>
+          </form>
         </Modal.Body>
-        <Modal.Footer>
-         
-        </Modal.Footer>
       </Modal>
     </>
   )

@@ -1,22 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Tabela from "../components/Tabela";
 import Navbar from '../components/Navbar';
 import { Modal } from 'react-bootstrap';
 
 const TabelaEmprestimo = () => {
-  const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Aqui você pode implementar a lógica para enviar os dados para o backend
-    // por meio de uma requisição HTTP, como por exemplo usando fetch() ou axios.
-    // Você pode usar os valores das variáveis data, status, quantidade, usuarioId e itemId
-    // para enviar os dados ao servidor.
-  };
-
+  const [linhas, setLinhas] = useState([])
+  const [listaItem, setListaItem] = useState([])
+  const [listaUsuario, setListaUsuario] = useState([])
   const [data, setData] = useState('');
   const [status, setStatus] = useState('');
   const [quantidade, setQuantidade] = useState(0);
@@ -24,12 +15,77 @@ const TabelaEmprestimo = () => {
   const [itemId, setItemId] = useState('');
 
   const headers = ["ID", "Data", "Status", "Quantidade", "Usuario", "Item"]
-  const linhas = [
-    [1, "10/02/2023", "Emprestado", 1, "Boto", "Arduino Uno"],
-    [2, "12/02/2023", "Devolvido", 2, "Bubuxo", "DHT-11"],
-    [3, "03/03/2023", "Emprestado", 1, "Lobo", "Rio"],
-    [3, "03/03/2023", "Emprestado", 1, "Lobo", "Mouse"],
-  ];
+
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/emprestimo');
+      const json = await response.json();
+      setLinhas(json['emprestimos'].map(obj => {
+        return Object.values(obj).map(value => {
+          if (typeof value !== 'object') {
+            return value;
+          }
+          return null;
+        });
+      }));
+    } catch (error) {
+      console.log("error", error);
+    }
+    try {
+      const response = await fetch('http://localhost:8000/usuario');
+      const json = await response.json();
+      setListaUsuario(json['usuarios'].map(obj => {
+        return {
+          usuario_id: obj.usuario_id,
+          usuario_nome: obj.usuario_nome
+        };
+      }));
+    } catch (error) {
+      console.log("error", error);
+    }
+    try {
+      const response = await fetch('http://localhost:8000/item');
+      const json = await response.json();
+      setListaItem(json['itens'].map(obj => {
+        return {
+          item_id: obj.item_id,
+          item_nome: obj.item_nome
+        };
+      }));
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        "emprestimo_data": data,
+        "emprestimo_status": status,
+        "emprestimo_quantidade": quantidade,
+        "emprestimo_usuario_id": usuarioId,
+        "emprestimo_item_id": itemId
+      })
+    };
+    fetch('http://localhost:8000/emprestimo', requestOptions)
+      .then(response => response.json())
+      .then(() => {
+        handleClose()
+        fetchData()
+      });
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -51,70 +107,72 @@ const TabelaEmprestimo = () => {
         </Modal.Header>
         <Modal.Body>
           <form onSubmit={handleSubmit}>
-            <label>
-              Data:
-              <input className="input"
-                type="text"
-                value={data}
-                onChange={(event) => setData(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label >
+                Data&nbsp;
+                <input className="input"
+                  type="text"
+                  value={data}
+                  onChange={(event) => setData(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Status:
-              <input className="input"
-                type="text"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Status&nbsp;
+                <input className="input"
+                  type="text"
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Quantidade:
-              <input className="input"
-                type="number"
-                value={quantidade}
-                onChange={(event) => setQuantidade(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Quantidade&nbsp;
+                <input className="input"
+                  type="number"
+                  value={quantidade}
+                  onChange={(event) => setQuantidade(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Usuário ID:
-              <select
-                value={usuarioId}
-                onChange={(event) => setUsuarioId(event.target.value)}
-              >
-                <option value="">Selecione um usuário</option>
-                <option value="1">Usuário 1</option>
-                <option value="2">Usuário 2</option>
-                <option value="3">Usuário 3</option>
-              </select>
-            </label>
+            <div className="form-group">
+              <label>
+                Usuário&nbsp;
+                <select
+                  value={usuarioId}
+                  onChange={(event) => setUsuarioId(event.target.value)}
+                >
+                  <option value="">Selecione um Usuário</option>
+                  {listaUsuario.map((item, index) => (
+                    <option key={index} value={item.usuario_id}>{item.usuario_nome}</option>))
+                  }
+                </select>
+              </label>
+            </div>
             <br />
-            <label>
-              Item ID:
-              <select
-                value={itemId}
-                onChange={(event) => setItemId(event.target.value)}
-              >
-                <option value="">Selecione um item</option>
-                <option value="1">Item 1</option>
-                <option value="2">Item 2</option>
-                <option value="3">Item 3</option>
-              </select>
-            </label>
+            <div className="form-group">
+              <label>
+                Item&nbsp;
+                <select
+                  value={itemId}
+                  onChange={(event) => setItemId(event.target.value)}
+                >
+                  <option value="">Selecione um Item</option>
+                  {listaItem.map((item, index) => (
+                    <option key={index} value={item.item_id}>{item.item_nome}</option>))
+                  }
+                </select>
+              </label>
+            </div>
             <br />
             <button className="btn btn-primary" type="submit">Salvar</button>
           </form>
         </Modal.Body>
-        <Modal.Footer>
-          {/* <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleClose}>
-            Save Changes
-          </Button> */}
-        </Modal.Footer>
       </Modal>
     </>
   )

@@ -4,15 +4,15 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import Home from './components/Home';
-import Item from './pages/Item';
-import Usuario from './pages/Usuarios';
-import Emprestimo from './pages/Emprestimo';
 import TabelaItem from './pages/TabelaItem';
 import TabelaUsuario from './pages/TabelaUsuario';
 import TabelaEmprestimo from './pages/TabelaEmprestimo';
 
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <TabelaItem></TabelaItem>,
+  },
   {
     path: "/tabela-item",
     element: <TabelaItem></TabelaItem>,

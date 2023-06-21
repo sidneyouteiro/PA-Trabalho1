@@ -1,36 +1,63 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Tabela from "../components/Tabela";
 import Navbar from '../components/Navbar';
 import { Modal } from 'react-bootstrap';
 
 const TabelaItem = () => {
-  const [itemNome, setItemNome] = useState('');
+  const [linhas, setLinhas] = useState([]);
+  const [nome, setnome] = useState('');
   const [categoria, setCategoria] = useState('');
   const [detalhes, setDetalhes] = useState('');
   const [quantidadeTotal, setQuantidadeTotal] = useState(0);
+
+  const headers = ["ID", "Nome", "Categoria", "Quantidade"]
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Aqui você pode implementar a lógica para enviar os dados para o backend
-    // por meio de uma requisição HTTP, como por exemplo usando fetch() ou axios.
-    // Você pode usar os valores das variáveis itemNome, categoria, detalhes e quantidadeTotal
-    // para enviar os dados ao servidor.
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/item');
+      const json = await response.json();
+      setLinhas(json['itens'].map(obj => {
+        return Object.values(obj).map(value => {
+          if (typeof value !== 'object') {
+            return value;
+          }
+          return null;
+        });
+      }));
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
-  const headers = ["ID", "Nome", "Categoria", "Quantidade"]
-  const linhas = [
-    [1, "Rio", "Desktop", 1],
-    [2, "Arduino Uno", "Embarcado", 2],
-    [3, "DHT-11", "Sensor", 4],
-    [4, "Floripa", "Notebook", 1],
-    [5, "HCSR-04", "Sensor", 7],
-    [5, "Mouse", "Periférico", 5],
-  ];
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        "item_nome": nome,
+        "categoria": categoria,
+        "quantidade_total": quantidadeTotal,
+        "detalhes": { "teste": "teste" }
+      })
+    };
+    fetch('http://localhost:8000/item', requestOptions)
+      .then(response => response.json())
+      .then(() => {
+        handleClose()
+        fetchData()
+      });
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -54,48 +81,53 @@ const TabelaItem = () => {
         </Modal.Header>
         <Modal.Body>
           <form onSubmit={handleSubmit}>
-            <label>
-              Item Nome:
-              <input className="input"
-                type="text"
-                value={itemNome}
-                onChange={(event) => setItemNome(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Nome&nbsp;
+                <input className="input"
+                  type="text"
+                  value={nome}
+                  onChange={(event) => setnome(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Categoria:
-              <input className="input"
-                type="text"
-                value={categoria}
-                onChange={(event) => setCategoria(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Categoria&nbsp;
+                <input className="input"
+                  type="text"
+                  value={categoria}
+                  onChange={(event) => setCategoria(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Detalhes:
-              <input className="input"
-                type="text"
-                value={detalhes}
-                onChange={(event) => setDetalhes(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Detalhes&nbsp;
+                <input className="input"
+                  type="text"
+                  value={detalhes}
+                  onChange={(event) => setDetalhes(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
-            <label>
-              Quantidade Total:
-              <input className="input"
-                type="number"
-                value={quantidadeTotal}
-                onChange={(event) => setQuantidadeTotal(event.target.value)}
-              />
-            </label>
+            <div className="form-group">
+              <label>
+                Quantidade Total&nbsp;
+                <input className="input"
+                  type="number"
+                  value={quantidadeTotal}
+                  onChange={(event) => setQuantidadeTotal(event.target.value)}
+                />
+              </label>
+            </div>
             <br />
             <button className="btn btn-primary" type="submit">Salvar</button>
           </form>
         </Modal.Body>
-        <Modal.Footer>
-
-        </Modal.Footer>
       </Modal>
     </>
   )
