@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
@@ -16,7 +16,6 @@ def get_all_emprestimos(page: int = 1, limit: int = 15, db: Session = Depends(ge
     for emprestimo in emprestimos:
         emprestimos_response.append(emprestimo.get_dict())
 
-    print(emprestimos_response)
     return { 'emprestimos': emprestimos_response }
 
 @router.post('/',status_code=status.HTTP_201_CREATED)
@@ -36,7 +35,7 @@ def create_emprestimo(new_emprestimo: EmprestimoSchema, db: Session = Depends(ge
     }
     return aux
 
-@router.put('/{emprestimo_id}')
+@router.put('/{emprestimo_id}', status_code=status.HTTP_200_OK)
 def update_emprestimo(emprestimo_id: int, updates: UpdateEmprestimoSchema, db: Session = Depends(get_db)):
     emprestimo_query = db.query(Emprestimo).filter(Emprestimo.emprestimo_id == emprestimo_id)
     updated_emprestimo = emprestimo_query.first()
@@ -45,7 +44,7 @@ def update_emprestimo(emprestimo_id: int, updates: UpdateEmprestimoSchema, db: S
                             detail=f'Não foi encontrado emprestimo com o id {emprestimo_id}')
     emprestimo_query.update(updates.dict(exclude_unset=True), synchronize_session=False)
     db.commit()
-    return updated_emprestimo
+    return updated_emprestimo.get_dict()
 
 @router.delete('/{emprestimo_id}')
 def delete_emprestimo(emprestimo_id: int, db: Session = Depends(get_db)):

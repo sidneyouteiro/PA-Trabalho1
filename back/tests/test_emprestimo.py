@@ -66,28 +66,19 @@ def test_get_all_emprestimos():
     assert response.json() == { 'emprestimos': emprestimos_bd }
 
 def test_update_emprestimo():
-    assert True == True
-    # response = client.put(
-    #     test_url+str(new_item_id),
-    #     json={}
-    # )
-    # updated_item = db.query(ItemInventario).filter(ItemInventario.item_id == new_item_id).first()
-    # assert response.status_code == 200
-    # assert response.json() == {
-    #     'item_id': new_item_id,
-    #     'item_nome': 'DesktopTeste',
-    #     'categoria': 'desktop',
-    #     'detalhes': {
-    #         'processador': 'Intel i9-9800',
-    #         'RAM': '16Gb',
-    #         'HD': '1Tb'
-    #     },
-    #     'quantidade_total': 1
-    # }
+    response = client.put(
+        test_url+str(new_emprestimo_id),
+        json={
+            'emprestimo_status': 'Devolvido', 
+            'emprestimo_quantidade': 1,
+        }
+    )
+    updated_emprestimo = db.query(Emprestimo).filter(Emprestimo.emprestimo_id == new_emprestimo_id).first().get_dict()
+    assert response.status_code == 200
+    assert response.json() == updated_emprestimo
 
 def test_delete_emprestimo():
-    assert True == True
-    # response = client.delete(test_url+str(new_item_id))
-    # deleted_item = db.query(ItemInventario).filter(ItemInventario.item_id == new_item_id).first()
-    # assert response.status_code == 204
-    # assert not deleted_item
+    response = client.delete(test_url+str(new_emprestimo_id))
+    deleted_item = db.query(Emprestimo).filter(Emprestimo.emprestimo_id == new_emprestimo_id).first()
+    assert response.status_code == 204
+    assert not deleted_item
