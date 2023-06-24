@@ -84,8 +84,9 @@ const TabelaEmprestimo = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (linhas.length == 0)
+      fetchData();
+  }, [linhas]);
 
   return (
     <>
@@ -99,7 +100,7 @@ const TabelaEmprestimo = () => {
         </div>
       </div>
       <div className='card p-3'>
-        <Tabela headers={headers} linhas={linhas}></Tabela>
+        <Tabela headers={headers} linhas={linhas} fetchData={fetchData} tela={'emprestimo'}></Tabela>
       </div>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>

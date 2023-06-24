@@ -6,6 +6,7 @@ import { Modal } from 'react-bootstrap';
 
 const TabelaItem = () => {
   const [linhas, setLinhas] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [nome, setnome] = useState('');
   const [categoria, setCategoria] = useState('');
   const [detalhes, setDetalhes] = useState('');
@@ -18,6 +19,7 @@ const TabelaItem = () => {
   const handleShow = () => setShow(true);
 
   const fetchData = async () => {
+  console.log("teste")
     try {
       const response = await fetch('http://localhost:8000/item');
       const json = await response.json();
@@ -56,8 +58,9 @@ const TabelaItem = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (linhas.length == 0)
+      fetchData();
+  }, [linhas]);
 
   return (
     <>
@@ -72,7 +75,7 @@ const TabelaItem = () => {
           </div>
         </div>
         <div className='card p-3'>
-          <Tabela headers={headers} linhas={linhas}></Tabela>
+          <Tabela headers={headers} linhas={linhas} fetchData={fetchData} handleShow={handleShow} setSelected={setSelected} tela={'item'}></Tabela>
         </div>
       </div>
       <Modal show={show} onHide={handleClose}>
@@ -86,7 +89,7 @@ const TabelaItem = () => {
                 Nome&nbsp;
                 <input className="input"
                   type="text"
-                  value={nome}
+                  value={selected.length == 0 ? undefined : selected[1]}
                   onChange={(event) => setnome(event.target.value)}
                 />
               </label>
@@ -97,7 +100,7 @@ const TabelaItem = () => {
                 Categoria&nbsp;
                 <input className="input"
                   type="text"
-                  value={categoria}
+                  value={selected.length == 0 ? undefined : selected[2]}
                   onChange={(event) => setCategoria(event.target.value)}
                 />
               </label>
@@ -108,7 +111,7 @@ const TabelaItem = () => {
                 Detalhes&nbsp;
                 <input className="input"
                   type="text"
-                  value={detalhes}
+                  value={selected.length == 0 ? undefined : selected[4]}
                   onChange={(event) => setDetalhes(event.target.value)}
                 />
               </label>
@@ -119,7 +122,7 @@ const TabelaItem = () => {
                 Quantidade Total&nbsp;
                 <input className="input"
                   type="number"
-                  value={quantidadeTotal}
+                  value={selected.length == 0 ? undefined : selected[3]}
                   onChange={(event) => setQuantidadeTotal(event.target.value)}
                 />
               </label>

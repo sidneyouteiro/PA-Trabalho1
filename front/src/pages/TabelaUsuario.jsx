@@ -52,8 +52,9 @@ const TabelaUsuario = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (linhas.length == 0)
+      fetchData();
+  }, [linhas]);
 
   return (
     <>
@@ -67,7 +68,7 @@ const TabelaUsuario = () => {
         </div>
       </div>
       <div className='card p-3'>
-        <Tabela headers={headers} linhas={linhas}></Tabela>
+        <Tabela headers={headers} linhas={linhas} fetchData={fetchData} tela={'usuario'}></Tabela>
       </div>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
